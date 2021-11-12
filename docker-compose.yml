@@ -1,0 +1,90 @@
+version: '3.7'
+services:
+  mssqlserver:
+    build:
+      context: mssql/
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: 123456aA@
+    ports:
+      - 1433:1433
+    networks:
+      - demo-network
+
+  mongodb:
+    build:
+      context: mongo/
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456aA@
+    ports:
+      - 27017:27017
+    networks:
+      - demo-network
+
+  mysql:
+    build:
+      context: mysql/
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456aA@
+    ports:
+      - 3306:3306
+    networks:
+      - demo-network
+
+  rabitmq:
+    build:
+      context: rabbitmq/
+    networks:
+      - demo-network
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  zookeeper:
+    build:
+      context: zookeeper/
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+    networks:
+      - demo-network
+
+  kafka:
+    build:
+      context: kafka/
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - 29092:29092
+    networks:
+      - demo-network
+    depends_on:
+      - zookeeper
+
+  kafka-ui:
+    build:
+      context: kafka-ui/
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - 8080:8080
+    networks:
+      - demo-network
+    depends_on:
+      - kafka
+
+networks:
+  demo-network:
+    driver: bridge
+
+
+  
